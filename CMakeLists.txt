@@ -22,12 +22,12 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(HDRS
-  include/DBoW2/BowVector.h           include/DBoW2/FBrief.h
+  include/DBoW2/BowVector.h           include/DBoW2/FBrief.h              include/DBoW2/FBRISK.h
   include/DBoW2/QueryResults.h        include/DBoW2/TemplatedDatabase.h   include/DBoW2/FORB.h
   include/DBoW2/DBoW2.h               include/DBoW2/FClass.h              include/DBoW2/FeatureVector.h
   include/DBoW2/ScoringObject.h       include/DBoW2/TemplatedVocabulary.h)
 set(SRCS 
-  src/BowVector.cpp     src/FBrief.cpp        src/FORB.cpp
+  src/BowVector.cpp     src/FBrief.cpp        src/FORB.cpp        src/FBRISK.cpp
   src/FeatureVector.cpp src/QueryResults.cpp  src/ScoringObject.cpp)
 
 set(DEPENDENCY_DIR ${CMAKE_CURRENT_BINARY_DIR}/dependencies)
@@ -36,6 +36,9 @@ set(DEPENDENCY_INSTALL_DIR ${DEPENDENCY_DIR}/install)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+find_package( brisk 2 REQUIRED )
+include_directories(BEFORE ${BRISK_INCLUDE_DIRS})
+
 if(BUILD_DBoW2)
   set(LIB_SHARED "SHARED")
   if(WIN32)
@@ -43,12 +46,12 @@ if(BUILD_DBoW2)
   endif(WIN32)
   add_library(${PROJECT_NAME} ${LIB_SHARED} ${SRCS})
   include_directories(include/DBoW2/)
-  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${BRISK_LIBRARIES})
 endif(BUILD_DBoW2)
 
 if(BUILD_Demo)
-  add_executable(demo demo/demo.cpp)
-  target_link_libraries(demo ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_executable(brisk_vocab demo/createBRISKvocab.cpp)
+  target_link_libraries(brisk_vocab ${PROJECT_NAME} ${OpenCV_LIBS} ${BRISK_LIBRARIES})
   file(COPY demo/images DESTINATION ${CMAKE_BINARY_DIR}/)
 endif(BUILD_Demo)
 
