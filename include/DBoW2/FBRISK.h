@@ -27,7 +27,7 @@ public:
   /// Pointer to a single descriptor
   typedef const TDescriptor *pDescriptor;
   /// Descriptor length (in bytes)
-  static const int L = 32;
+  static const int L = 64;
 
   /**
    * Calculates the mean value of a set of descriptors

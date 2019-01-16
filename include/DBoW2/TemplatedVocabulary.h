@@ -1392,28 +1392,33 @@ void TemplatedVocabulary<TDescriptor,F>::binarySave(const std::string &filename)
 
   //   k (int)
   f.write((char*)&m_k,sizeof(m_k));
+  std::cout << "k: " << m_k << std::endl << std::flush;
 
   //   L (int)
   f.write((char*)&m_L,sizeof(m_L));
+  std::cout << "L: " << m_L << std::endl << std::flush;
 
   //   scoringType (unsigned char)
   f.write((char*)&m_scoring,sizeof(m_scoring));
+  std::cout << "scoringType: " << m_scoring << std::endl << std::flush;
 
   //   weightingType (unsigned char)
   f.write((char*)&m_weighting,sizeof(m_weighting));
-  
+  std::cout << "weightingType: " << m_weighting << std::endl << std::flush;
+
   // tree
   std::vector<NodeId> parents, children;
   std::vector<NodeId>::const_iterator pit;
 
-  unsigned int number_of_nodes = parents.size();
+  unsigned int number_of_nodes = m_nodes.size();
   //   number_of_nodes (unsigned int)
   f.write((char*)&number_of_nodes,sizeof(int));
+  std::cout << "number_of_nodes: " << number_of_nodes << std::endl << std::flush;
 
-
+  int i=0;
   parents.push_back(0); // root
   while(!parents.empty())
-  {
+  { 
     NodeId pid = parents.back();
     parents.pop_back();
 
@@ -1429,6 +1434,7 @@ void TemplatedVocabulary<TDescriptor,F>::binarySave(const std::string &filename)
       f.write((char*)&pid,sizeof(int));
       f.write((char*)&child.weight,sizeof(double));
       f.write((char*)&child.descriptor.data,F::L*sizeof(char));
+      i++;
       
       // add to parent list
       if(!child.isLeaf())
@@ -1437,19 +1443,23 @@ void TemplatedVocabulary<TDescriptor,F>::binarySave(const std::string &filename)
       }
     }
   }
+  std::cout << "i: " << i << std::endl << std::flush;
   
   unsigned int number_of_words = m_words.size();
   //   number_of_words (unsigned int)
   f.write((char*)&number_of_words,sizeof(int));
+  std::cout << "number_of_words: " << number_of_words << std::endl << std::flush;
 
-
+  i=0;
   typename std::vector<Node*>::const_iterator wit;
   for(wit = m_words.begin(); wit != m_words.end(); wit++)
   {
     WordId id = wit - m_words.begin();
     f.write((char*)&id,sizeof(int));
     f.write((char*)&((*wit)->id),sizeof(int));
+    i++;
   }
+    std::cout << "i: " << i << std::endl << std::flush;
 
 }
 
@@ -1466,27 +1476,33 @@ void TemplatedVocabulary<TDescriptor,F>::binaryLoad(const std::string &filename)
   
   //   k (int)
   f.read((char*)&m_k,sizeof(m_k));
+  std::cout << "k: " << m_k << std::endl << std::flush;
 
   //   L (int)
   f.read((char*)&m_L,sizeof(m_L));
+  std::cout << "L: " << m_L << std::endl << std::flush;
 
   //   scoringType (unsigned char)
   f.read((char*)&m_scoring,sizeof(m_scoring));
+  std::cout << "scoringType: " << m_scoring << std::endl << std::flush;
 
   //   weightingType (unsigned char)
   f.read((char*)&m_weighting,sizeof(m_weighting));
+  std::cout << "weightingType: " << m_weighting << std::endl << std::flush;
   
   createScoringObject();
 
   unsigned int number_of_nodes;
   //   number_of_nodes (unsigned int)
   f.read((char*)&number_of_nodes,sizeof(int));
+  std::cout << "number_of_nodes: " << number_of_nodes << std::endl << std::flush;
 
-  m_nodes.resize(number_of_nodes + 1); // +1 to include root
+  m_nodes.resize(number_of_nodes); // +1 to include root
   m_nodes[0].id = 0;
 
-  for(unsigned int i = 0; i < number_of_nodes; ++i)
+  for(unsigned int i = 0; i < number_of_nodes-1; ++i)
   {
+    //std::cout << "i: " << i << std::endl << std::flush;
     NodeId nid;;
     NodeId pid;
     WordValue weight;
@@ -1497,18 +1513,23 @@ void TemplatedVocabulary<TDescriptor,F>::binaryLoad(const std::string &filename)
     m_nodes[nid].parent = pid;
     m_nodes[nid].weight = weight;
     m_nodes[pid].children.push_back(nid);
-    m_nodes[pid].descriptor = cv::Mat(1, F::L, CV_8U); //ORB/BRISK impl
-    f.read((char*)&m_nodes[pid].descriptor.data,F::L*sizeof(char));
+    m_nodes[nid].descriptor = cv::Mat(1, F::L, CV_8U); //ORB/BRISK impl
+    f.read((char*)m_nodes[nid].descriptor.data,F::L*sizeof(char));
+    //std::cout << F::L << std::endl << std::flush;
+    //std::cout << F::toString(m_nodes[nid].descriptor) << std::endl;
+    if(nid>number_of_nodes-1 || pid>number_of_nodes-1)
+      std::cout << "OUT OF BOUNDS" << std::endl;
   }
   
   unsigned int number_of_words;
   //   number_of_words (unsigned int)
   f.read((char*)&number_of_words,sizeof(int));
 
+  std::cout << "number_of_words: " << number_of_words << std::endl << std::flush;
   m_words.resize(number_of_words);
 
   for(unsigned int i = 0; i < number_of_words; ++i)
-  {
+  { 
     NodeId wid; 
     NodeId nid;
     f.read((char*)&wid,sizeof(int));
@@ -1516,6 +1537,8 @@ void TemplatedVocabulary<TDescriptor,F>::binaryLoad(const std::string &filename)
     
     m_nodes[nid].word_id = wid;
     m_words[wid] = &m_nodes[nid];
+    if(nid>number_of_nodes-1 || wid >=number_of_words)
+      std::cout << "OUT OF BOUNDS" << std::endl;
   }
 }
 
