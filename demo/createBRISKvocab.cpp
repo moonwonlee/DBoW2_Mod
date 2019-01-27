@@ -17,7 +17,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/features2d.hpp>
 #include <brisk/brisk.h>
-
+#include <memory>
 
 using namespace DBoW2;
 using namespace std;
@@ -29,18 +29,18 @@ void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out);
 void testVocCreation(const vector<vector<cv::Mat > > &features);
 void testDatabase(const vector<vector<cv::Mat > > &features);
 
-int briskDetectionOctaves_(4);
-float briskDetectionThreshold_(50.0);
+int briskDetectionOctaves_(2);
+float briskDetectionThreshold_(20.0);
 float briskDetectionAbsoluteThreshold_(800.0);
-int briskDetectionMaximumKeypoints_(450);
+int briskDetectionMaximumKeypoints_(400);
 bool briskDescriptionRotationInvariance_(true);
-bool briskDescriptionScaleInvariance_(false);
+bool briskDescriptionScaleInvariance_(true);
 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 // number of training images
-const int NIMAGES = 4;
+int NIMAGES = 4;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -59,9 +59,9 @@ int main()
 
   testVocCreation(features);
 
-  wait();
+//  wait();
 
-  testDatabase(features);
+//  testDatabase(features);
 
   return 0;
 }
@@ -84,13 +84,14 @@ void loadFeatures(vector<vector<cv::Mat > > &features)
                 briskDescriptionRotationInvariance_,
                 briskDescriptionScaleInvariance_));
 
-  cout << "Extracting BRISK features..." << endl;
-  for(int i = 0; i < NIMAGES; ++i)
-  {
-    stringstream ss;
-    ss << "images/image" << i << ".png";
+  vector<cv::String> filenames;
+  glob("/externd/datasets/Bovisa_2008_09_01-FRONTAL/*.png", filenames, false);
 
-    cv::Mat image = cv::imread(ss.str(), 0);
+  cout << "Extracting BRISK features..." << endl;
+  NIMAGES = filenames.size();
+  for (int i=0; i<NIMAGES; i+=6){
+    std::cout << "im: " << i << std::endl;
+    cv::Mat image = cv::imread(filenames[i],0);
     cv::Mat mask;
     vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
@@ -121,14 +122,14 @@ void changeStructure(const cv::Mat &plain, vector<cv::Mat> &out)
 void testVocCreation(const vector<vector<cv::Mat > > &features)
 {
   // branching factor and depth levels 
-  const int k = 9;
-  const int L = 3;
+  const int k = 10;
+  const int L = 6;
   const WeightingType weight = TF_IDF;
   const ScoringType score = L1_NORM;
 
   BRISKVocabulary voc(k, L, weight, score);
 
-  cout << "Creating a small " << k << "^" << L << " vocabulary..." << endl;
+  cout << "Creating a large " << k << "^" << L << " vocabulary..." << endl;
   voc.create(features);
   cout << "... done!" << endl;
 
@@ -136,23 +137,23 @@ void testVocCreation(const vector<vector<cv::Mat > > &features)
   << voc << endl << endl;
 
   // lets do something with this vocabulary
-  cout << "Matching images against themselves (0 low, 1 high): " << endl;
+/*  cout << "Matching images against themselves (0 low, 1 high): " << endl;
   BowVector v1, v2;
-  for(int i = 0; i < NIMAGES; i++)
+  for(int i = 0; i < NIMAGES; i+=6)
   {
-    voc.transform(features[i], v1);
-    for(int j = 0; j < NIMAGES; j++)
+    voc.transform(features[i/6], v1);
+    for(int j = 0; j < NIMAGES; j+=6)
     {
-      voc.transform(features[j], v2);
+      voc.transform(features[j/6], v2);
       
       double score = voc.score(v1, v2);
       cout << "Image " << i << " vs Image " << j << ": " << score << endl;
     }
   }
-
+*/
   // save the vocabulary to disk
   cout << endl << "Saving vocabulary..." << endl;
-  voc.save("small_voc.yml.gz");
+  voc.save("large_voc.yml.gz");
   cout << "Done" << endl;
 }
 

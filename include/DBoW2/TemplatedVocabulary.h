@@ -724,6 +724,9 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
           
           
           F::meanValue(cluster_descriptors, clusters[c]);
+          if(clusters[c].empty()){
+            clusters.erase(clusters.begin() + c);
+          }
         }
         
       } // if(!first_time)
@@ -1387,7 +1390,7 @@ void TemplatedVocabulary<TDescriptor,F>::binarySave(const std::string &filename)
   //
 
   std::fstream f;
-  f.open(filename,std::ios_base::out|std::ios::binary);
+  f.open(filename.c_str(),std::ios_base::out|std::ios::binary);
   
 
   //   k (int)
@@ -1433,7 +1436,7 @@ void TemplatedVocabulary<TDescriptor,F>::binarySave(const std::string &filename)
       f.write((char*)&child.id,sizeof(int));
       f.write((char*)&pid,sizeof(int));
       f.write((char*)&child.weight,sizeof(double));
-      f.write((char*)&child.descriptor.data,F::L*sizeof(char));
+      f.write((char*)child.descriptor.data,F::L*sizeof(char));
       i++;
       
       // add to parent list
@@ -1472,7 +1475,7 @@ void TemplatedVocabulary<TDescriptor,F>::binaryLoad(const std::string &filename)
   m_nodes.clear();
   
   std::fstream f;
-  f.open(filename,std::ios_base::in|std::ios::binary);
+  f.open(filename.c_str(),std::ios_base::in|std::ios::binary);
   
   //   k (int)
   f.read((char*)&m_k,sizeof(m_k));
