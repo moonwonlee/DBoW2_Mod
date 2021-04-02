@@ -3,7 +3,7 @@ project(DBoW2)
 include(ExternalProject)
 
 option(BUILD_DBoW2   "Build DBoW2"            ON)
-option(BUILD_Demo    "Build demo application" ON)
+#option(BUILD_Demo    "Build demo application" ON)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
@@ -50,11 +50,11 @@ if(BUILD_DBoW2)
   target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${BRISK_LIBRARIES})
 endif(BUILD_DBoW2)
 
-if(BUILD_Demo)
-  add_executable(brisk_vocab demo/createBRISKvocab.cpp)
-  target_link_libraries(brisk_vocab ${PROJECT_NAME} ${OpenCV_LIBS} ${BRISK_LIBRARIES})
-  file(COPY demo/images DESTINATION ${CMAKE_BINARY_DIR}/)
-endif(BUILD_Demo)
+#if(BUILD_Demo)
+#  add_executable(brisk_vocab demo/createBRISKvocab.cpp)
+#  target_link_libraries(brisk_vocab ${PROJECT_NAME} ${OpenCV_LIBS} ${BRISK_LIBRARIES})
+#  file(COPY demo/images DESTINATION ${CMAKE_BINARY_DIR}/)
+#endif(BUILD_Demo)
 
 configure_file(src/DBoW2.cmake.in
   "${PROJECT_BINARY_DIR}/DBoW2Config.cmake" @ONLY)
